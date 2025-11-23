@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kasir UMKM</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffcbcb, #ffe8a1, #c8f7c5, #aeeaff);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #ff6f61;
+      padding: 20px;
+      text-align: center;
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+    }
+    .menu-section, .cart-section, .admin-section {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+    h2 {
+      color: #333;
+    }
+    .menu-item {
+      background: #f7f7f7;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .add-btn { background: #4caf50; color: white; }
+    .remove-btn { background: #f44336; color: white; }
+    .print-btn { background: #2196f3; color: white; width: 100%; margin-top: 15px; padding: 12px; }
+    .admin-section input {
+      width: 100%; padding: 8px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc;
+    }
+    .admin-section button { width: 100%; margin-top: 10px; background: #ff9800; color: white; }
+  </style>
+</head>
+<body>
+  <header>Kasir UMKM - Menu Makanan & Minuman</header>
+
+  <div class="container">
+    <!-- Menu -->
+    <div class="menu-section">
+      <h2>Menu</h2>
+      <div id="menuList"></div>
+    </div>
+
+    <!-- Keranjang -->
+    <div class="cart-section">
+      <h2>Keranjang</h2>
+      <div id="cartList"></div>
+      <h3>Total: Rp <span id="totalPrice">0</span></h3>
+      <button class="print-btn" onclick="printReceipt()">Print Struk</button>
+    </div>
+
+    <!-- Admin -->
+    <div class="admin-section">
+      <h2>Tambah Menu</h2>
+      <input id="newName" type="text" placeholder="Nama Menu" />
+      <input id="newPrice" type="number" placeholder="Harga" />
+      <button onclick="addMenu()">Tambah</button>
+    </div>
+  </div>
+
+<script>
+  let menu = [
+    { name: 'Nasi Goreng', price: 15000 },
+    { name: 'Ayam Geprek', price: 18000 },
+    { name: 'Es Teh', price: 5000 },
+    { name: 'Kopi Susu', price: 10000 }
+  ];
+
+  let cart = [];
+
+  function renderMenu() {
+    const list = document.getElementById('menuList');
+    list.innerHTML = '';
+
+    menu.forEach((item, index) => {
+      list.innerHTML += `
+        <div class="menu-item">
+          <span>${item.name} - Rp ${item.price}</span>
+          <button class="add-btn" onclick="addToCart(${index})">Tambah</button>
+        </div>
+      `;
+    });
+  }
+
+  function renderCart() {
+    const list = document.getElementById('cartList');
+    list.innerHTML = '';
+    let total = 0;
+
+    cart.forEach((item, index) => {
+      list.innerHTML += `
+        <div class="menu-item">
+          <span>${item.name} - Rp ${item.price}</span>
+          <button class="remove-btn" onclick="removeFromCart(${index})">Hapus</button>
+        </div>
+      `;
+      total += item.price;
+    });
+
+    document.getElementById('totalPrice').textContent = total;
+  }
+
+  function addToCart(index) {
+    cart.push(menu[index]);
+    renderCart();
+  }
+
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCart();
+  }
+
+  function addMenu() {
+    const name = document.getElementById('newName').value;
+    const price = parseInt(document.getElementById('newPrice').value);
+
+    if (!name || !price) return alert('Isi nama dan harga!');
+
+    menu.push({ name, price });
+    renderMenu();
+
+    document.getElementById('newName').value = '';
+    document.getElementById('newPrice').value = '';
+  }
+
+  renderMenu();
+  renderCart();
+</script>
+
+  <div id="receipt" style="display:none; padding:20px; font-family:monospace;">
+    <img src="/mnt/data/315a0c4b-ef08-4b88-8268-0eb19743d1bd.png" alt="Logo Ayam Geprek" style="width:140px; display:block; margin:0 auto 10px auto;">
+    <h2 style="text-align:center;">WARUNG UMKM</h2>
+    <p style="text-align:center;">Jl. Contoh Alamat No.123<br/>Kota Nusantara</p>
+    <p style="text-align:center; font-size:14px;">WhatsApp: 0812-3456-7890</p>
+    <div style="text-align:center; margin:10px 0;">
+      <img src="qris-placeholder.png" alt="QRIS" style="width:150px; height:150px;">
+      <p>Scan untuk pembayaran QRIS</p>
+    </div>
+    <hr>
+    <div id="receiptItems"></div>
+    <hr>
+    <h3>Total: Rp <span id="receiptTotal">0</span></h3>
+    <p style="text-align:center;">Terima kasih!</p>
+  </div>
+
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #receipt, #receipt * { visibility: visible; }
+      #receipt { position: absolute; top: 0; left: 0; width: 100%; }
+    }
+  </style>
+
+  <script>
+    function printReceipt() {
+      const receiptItems = document.getElementById('receiptItems');
+      const receiptTotal = document.getElementById('receiptTotal');
+
+      receiptItems.innerHTML = '';
+      let total = 0;
+
+      cart.forEach(item => {
+        receiptItems.innerHTML += `<p>${item.name} - Rp ${item.price}</p>`;
+        total += item.price;
+      });
+
+      receiptTotal.textContent = total;
+
+      document.getElementById('receipt').style.display = 'block';
+      window.print();
+      document.getElementById('receipt').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
